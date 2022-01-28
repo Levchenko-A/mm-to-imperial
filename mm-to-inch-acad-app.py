@@ -218,29 +218,33 @@ def save_and_close(path_file, acad_doc, delay_const):
     else:
         print(f'Unrecognized file extension: {path_file[-4:]}')
 
+@delaying_execution_and_return
+def get_insunits(doc, delay_const):
+    result = doc.GetVariable('INSUNITS')
+    return result
 
+def convertation(target_file,wincad_obj):
+    acad_doc = open_dwg(target_file, wincad_obj, delay_par)
+    insunits = get_insunits(acad_doc, delay_par)
+    if insunits == 1 or insunits == 0:
+        send_com_to_acad(acad_doc, "-DWGUNITS\n1\n4\n4\n\n\n", delay_par)
+        send_com_to_acad(acad_doc, "DIMUNIT\n4\n", delay_par)
+        send_com_to_acad(acad_doc, "LTSCALE\n'CAL\n(10/254)\n", delay_par)
+        send_com_to_acad(acad_doc, "PSVPSCALE\n'CAL\n(10/254)\n", delay_par)
+        send_com_to_acad(acad_doc, "AI_SELALL\nSCALE\n0,0,0\n'CAL\n(10/254)\n", delay_par)
+        send_com_to_acad(acad_doc, "Z\nE\n", delay_par)
+        save_and_close(target_file, acad_doc, delay_par)
+    else:
+        send_com_to_acad(acad_doc, "-DWGUNITS\n1\n5\n4\n\n\n\n\n", delay_par)
+        send_com_to_acad(acad_doc, "DIMUNIT\n4\n", delay_par)
+        send_com_to_acad(acad_doc, "Z\nE\n", delay_par)
+        save_and_close(target_file, acad_doc, delay_par)
 
 def resave_to_imperial():
     wincad = connect_to_acad()
     message = 'good'
     if file_to_convert != '':
-        if file_to_convert.endswith('.dwg'):
-            acad_doc = open_dwg(file_to_convert, wincad, delay_par)
-            send_com_to_acad(acad_doc, "-DWGUNITS\n1\n5\n4\n\n\n\n\n", delay_par)
-            send_com_to_acad(acad_doc, "DIMUNIT\n4\n", delay_par)
-            send_com_to_acad(acad_doc, "Z\nE\n", delay_par)
-            save_and_close(file_to_convert, acad_doc, delay_par)
-
-        elif file_to_convert.endswith('.dxf'):
-            acad_doc = open_dwg(file_to_convert, wincad, delay_par)
-            send_com_to_acad(acad_doc, "-DWGUNITS\n1\n4\n4\n\n\n", delay_par)
-            send_com_to_acad(acad_doc, "DIMUNIT\n4\n", delay_par)
-            send_com_to_acad(acad_doc, "LTSCALE\n'CAL\n(10/254)\n", delay_par)
-            send_com_to_acad(acad_doc, "PSVPSCALE\n'CAL\n(10/254)\n", delay_par)
-            send_com_to_acad(acad_doc, "_SELALL\nSCALE\n0,0,0\n'CAL\n(10/254)\n", delay_par)
-            send_com_to_acad(acad_doc, "Z\nE\n", delay_par)
-            save_and_close(file_to_convert, acad_doc, delay_par)
-
+        convertation(file_to_convert,wincad)
         bak_files_list = list_of_files(os.path.dirname(folder_selected), 'bak')
 
 
@@ -248,23 +252,13 @@ def resave_to_imperial():
         if var_dwg.get() == 1:
             dwg_files_list = list_of_files(folder_selected, 'dwg')
             for file in dwg_files_list:
-                acad_doc = open_dwg(file, wincad, delay_par)
-                send_com_to_acad(acad_doc, "-DWGUNITS\n1\n5\n4\n\n\n\n\n", delay_par)
-                send_com_to_acad(acad_doc, "DIMUNIT\n4\n", delay_par)
-                send_com_to_acad(acad_doc, "Z\nE\n", delay_par)
-                save_and_close(file, acad_doc, delay_par)
+                convertation(file,wincad)
 
         if var_dxf.get() == 1:
             dxf_files_list = list_of_files(folder_selected, 'dxf')
             for file in dxf_files_list:
-                acad_doc = open_dwg(file, wincad, delay_par)
-                send_com_to_acad(acad_doc, "-DWGUNITS\n1\n4\n4\n\n\n", delay_par)
-                send_com_to_acad(acad_doc, "DIMUNIT\n4\n", delay_par)
-                send_com_to_acad(acad_doc, "LTSCALE\n'CAL\n(10/254)\n", delay_par)
-                send_com_to_acad(acad_doc, "PSVPSCALE\n'CAL\n(10/254)\n", delay_par)
-                send_com_to_acad(acad_doc, "_SELALL\nSCALE\n0,0,0\n'CAL\n(10/254)\n", delay_par)
-                send_com_to_acad(acad_doc, "Z\nE\n", delay_par)
-                save_and_close(file, acad_doc, delay_par)
+                convertation(file,wincad)
+
         bak_files_list = list_of_files(folder_selected, 'bak')
 
     else:
